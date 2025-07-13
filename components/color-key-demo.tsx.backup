@@ -59,8 +59,6 @@ const generateHyperplaneForChar = (
   characterSet: string,
 ): string[][] => {
   const correctQuadrantIndex = Math.floor(Math.random() * quadrantCount)
-  // 🚫 Enforce 12-character limit per hyperplane
-  const maxCharacters = Math.min(charsPerQuadrant, 12)
   const hyperplane: string[][] = []
 
   for (let i = 0; i < quadrantCount; i++) {
@@ -69,12 +67,12 @@ const generateHyperplaneForChar = (
 
     if (i === correctQuadrantIndex) {
       quadrantChars.add(targetChar)
-      while (quadrantChars.size < maxCharacters) {
+      while (quadrantChars.size < charsPerQuadrant) {
         const randomChar = alphabetWithoutTarget[Math.floor(Math.random() * alphabetWithoutTarget.length)]
         quadrantChars.add(randomChar)
       }
     } else {
-      while (quadrantChars.size < maxCharacters) {
+      while (quadrantChars.size < charsPerQuadrant) {
         const randomChar = alphabetWithoutTarget[Math.floor(Math.random() * alphabetWithoutTarget.length)]
         quadrantChars.add(randomChar)
       }
@@ -170,9 +168,7 @@ const PasswordEntropyDetails = ({ password, isVisible }: { password: string; isV
 
 export function ColorKeyDemo() {
   // Core State
-  // Client-side mounting state to fix hydration
-  const [isMounted, setIsMounted] = useState(false)
-    const [masterPassword, setMasterPassword] = useState("")
+  const [masterPassword, setMasterPassword] = useState("")
   const [loginPassword, setLoginPassword] = useState("")
   const [currentStep, setCurrentStep] = useState(0)
   const [hyperplane, setHyperplane] = useState<string[][]>([])
@@ -180,11 +176,7 @@ export function ColorKeyDemo() {
   const [successQuadrant, setSuccessQuadrant] = useState<number | null>(null)
   const [keyboardSelection, setKeyboardSelection] = useState<number | null>(null)
   const [isInputFocused, setIsInputFocused] = useState(false)
-  const [isGridFocused, setIsGridFocused] = useState(false)
   const [pressedKey, setPressedKey] = useState<string | null>(null)
-  const [isSubmissionFailed, setIsSubmissionFailed] = useState(false)
-  const [showIncorrectSelectionError, setShowIncorrectSelectionError] = useState(false)
-  const [flashErrorOnHyperplanes, setFlashErrorOnHyperplanes] = useState(false)
 
   // History & Replay State
   const [history, setHistory] = useState<HistoryEntry[]>([])
@@ -220,9 +212,7 @@ export function ColorKeyDemo() {
 
   const generateNextHyperplane = useCallback(
     (step: number) => {
-      // Only generate on client-side to prevent hydration mismatch
-      if (!isMounted) return
-            if (cleanMasterPassword && step < cleanMasterPassword.length) {
+      if (cleanMasterPassword && step < cleanMasterPassword.length) {
         const targetChar = cleanMasterPassword[step]
         if (characterSet.includes(targetChar)) {
           const newHyperplanes = generateHyperplaneForChar(targetChar, numQuadrants, charsPerQuadrant, characterSet)
@@ -234,39 +224,14 @@ export function ColorKeyDemo() {
         setHyperplane(Array(numQuadrants).fill(Array(charsPerQuadrant).fill("•")))
       }
     },
-    [cleanMasterPassword, numQuadrants, charsPerQuadrant, characterSet, isMounted],
+    [cleanMasterPassword, numQuadrants, charsPerQuadrant, characterSet],
   )
 
   const isActive = cleanMasterPassword.length > 0
-  const [isComplete, setIsComplete] = useState(false)
-  const canSubmit = isActive && loginPassword.length === cleanMasterPassword.length
+  const isComplete = isActive && currentStep === cleanMasterPassword.length
 
-  const resetState = () => {
-    setLoginPassword("")
-    setCurrentStep(0)
-    setHistory([])
-    setIsSubmissionFailed(false)
-    setIsComplete(false)
-    setIsGridFocused(false)
-    setShowIncorrectSelectionError(false)
-    setFlashErrorOnHyperplanes(false)
-  }
-
-  const handleFullRestart = () => {
-    setMasterPassword("")
-    resetState()
-  }
-
-  const handleGameRestart = () => {
-    resetState()
-  }
-
-  // Mount effect to fix hydration
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
-    useEffect(() => {
-    if (!isReplaying && isMounted) {
+    if (!isReplaying) {
       generateNextHyperplane(currentStep)
     }
   }, [
@@ -277,57 +242,40 @@ export function ColorKeyDemo() {
     generateNextHyperplane,
     isReplaying,
     characterSet,
-    isMounted,
   ])
 
   const handleQuadrantSelection = useCallback(
     (selectedIndex: number) => {
       if (!isActive || isComplete || isReplaying) return
 
-      // Get the character from the selected quadrant
-      const quadrantChars = hyperplane[selectedIndex] || []
-      const selectedChar = quadrantChars[0] || '?'
-      
+      const isCorrect = hyperplane[selectedIndex]?.includes(cleanMasterPassword[currentStep])
+
       setHistory((prev) => [
         ...prev,
         {
           step: currentStep,
           hyperplaneState: JSON.parse(JSON.stringify(hyperplane)), // Deep copy
           selectedQuadrant: selectedIndex,
-          isCorrect: false, // We'll determine this on submit
-          passwordChar: selectedChar,
+          isCorrect,
+          passwordChar: cleanMasterPassword[currentStep],
         },
       ])
 
-      // Always add character to login password and increment step
-      setLoginPassword((prev) => prev + selectedChar)
-      setCurrentStep((prev) => prev + 1)
-
-      // Check if correct only if we're within the original password bounds
-      const isCorrect = currentStep < cleanMasterPassword.length && 
-                       quadrantChars.includes(cleanMasterPassword[currentStep])
-      
-      if (showFeedback) {
-        if (isCorrect) {
+      if (isCorrect) {
+        setLoginPassword((prev) => prev + cleanMasterPassword[currentStep])
+        setCurrentStep((prev) => prev + 1)
+        if (showFeedback) {
           setSuccessQuadrant(selectedIndex)
-          setTimeout(() => setSuccessQuadrant(null), 300)
-        } else {
+          setTimeout(() => setSuccessQuadrant(null), 500)
+        }
+      } else {
+        if (showFeedback) {
           setErrorQuadrant(selectedIndex)
-          setTimeout(() => setErrorQuadrant(null), 300)
+          setTimeout(() => setErrorQuadrant(null), 500)
         }
       }
-
-      // Always generate next hyperplane after selection
-      setTimeout(() => {
-        // If we're beyond password length, use a random character from the set for generation
-        const nextChar = currentStep + 1 < cleanMasterPassword.length 
-          ? cleanMasterPassword[currentStep + 1]
-          : characterSet[Math.floor(Math.random() * characterSet.length)]
-        const newHyperplanes = generateHyperplaneForChar(nextChar, numQuadrants, charsPerQuadrant, characterSet)
-        setHyperplane(shuffleArray(newHyperplanes))
-      }, 400)
     },
-    [cleanMasterPassword, currentStep, hyperplane, isComplete, isActive, showFeedback, isReplaying, numQuadrants, charsPerQuadrant, characterSet],
+    [cleanMasterPassword, currentStep, hyperplane, isComplete, isActive, showFeedback, isReplaying],
   )
 
   const keyMap = useMemo(() => {
@@ -347,7 +295,7 @@ export function ColorKeyDemo() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isGridFocused || isInputFocused || !isActive || isComplete || isReplaying) return
+      if (isInputFocused || !isActive || isComplete || isReplaying) return
 
       const key = e.key.toLowerCase()
       if (key in keyMap) {
@@ -366,41 +314,22 @@ export function ColorKeyDemo() {
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [handleQuadrantSelection, isActive, isComplete, showFeedback, keyMap, isInputFocused, isReplaying, isGridFocused])
+  }, [handleQuadrantSelection, isActive, isComplete, showFeedback, keyMap, isInputFocused, isReplaying])
 
-  // Handle click outside to unfocus grid
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Element
-      if (isGridFocused && !target.closest('[data-grid-container]')) {
-        setIsGridFocused(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [isGridFocused])
+  const resetState = () => {
+    setLoginPassword("")
+    setCurrentStep(0)
+    setHistory([])
+  }
 
   const handleMasterPasswordChange = (value: string) => {
     setMasterPassword(value)
     resetState()
   }
 
-  const handleSubmit = () => {
-    if (loginPassword === cleanMasterPassword) {
-      setIsComplete(true)
-    } else {
-      setIsSubmissionFailed(true)
-      setShowIncorrectSelectionError(true)
-      setFlashErrorOnHyperplanes(true)
-      
-      setTimeout(() => {
-        setIsSubmissionFailed(false)
-        setShowIncorrectSelectionError(false)
-        setFlashErrorOnHyperplanes(false)
-        handleGameRestart()
-      }, 2000)
-    }
+  const handleRestart = () => {
+    setMasterPassword("")
+    resetState()
   }
 
   const handleBacktrack = () => {
@@ -474,7 +403,6 @@ export function ColorKeyDemo() {
   }, [charsPerQuadrant])
 
   const getInstruction = () => {
-    if (isSubmissionFailed) return <span className="text-red-400 font-bold">Wrong password! Restarting...</span>
     if (isReplaying) return <span className="text-cyan-400 font-bold">Replaying history...</span>
     if (isComplete)
       return (
@@ -486,31 +414,18 @@ export function ColorKeyDemo() {
         </span>
       )
     if (isActive) {
-      // Check if any character in the password is not in the selected character sets
-      const invalidChars = cleanMasterPassword.split('').filter(char => !characterSet.includes(char))
-      
-      if (invalidChars.length > 0) {
-        const uniqueInvalidChars = [...new Set(invalidChars)]
+      if (!characterSet.includes(cleanMasterPassword[currentStep])) {
         return (
           <span className="text-yellow-400 font-bold">
-            Character{uniqueInvalidChars.length > 1 ? 's' : ''} '{uniqueInvalidChars.join("', '")}' not in selected set!
+            Character '{cleanMasterPassword[currentStep]}' not in selected set!
           </span>
         )
       }
-      
-      if (currentStep < cleanMasterPassword.length) {
-        return (
-          <span>
-            Select quadrant with: <strong className="text-blue-400 font-bold">{cleanMasterPassword[currentStep]}</strong>
-          </span>
-        )
-      } else {
-        return (
-          <span className="text-gray-400">
-            Continue selecting quadrants or click Submit when ready.
-          </span>
-        )
-      }
+      return (
+        <span>
+          Select quadrant with: <strong className="text-blue-400 font-bold">{cleanMasterPassword[currentStep]}</strong>
+        </span>
+      )
     }
     return <span className="text-gray-500">Create a password to begin.</span>
   }
@@ -535,10 +450,10 @@ export function ColorKeyDemo() {
                     onBlur={() => setIsInputFocused(false)}
                     className="bg-gray-800 border-gray-700 text-white font-mono tracking-wider group-disabled:opacity-50"
                   />
-                  {isInputFocused && <PasswordStrengthMeter password={masterPassword} />}
+                  <PasswordStrengthMeter password={masterPassword} />
                   <PasswordEntropyDetails
                     password={masterPassword}
-                    isVisible={isInputFocused}
+                    isVisible={isInputFocused || masterPassword.length > 0}
                   />
                 </div>
               </div>
@@ -581,22 +496,6 @@ export function ColorKeyDemo() {
               </AnimatePresence>
             </div>
 
-            {/* Grid Focus Indicator */}
-            {isActive && !isComplete && !isReplaying && (
-              <div className="flex justify-center mb-4">
-                <div className={cn(
-                  "text-xs px-3 py-1 rounded-full border transition-all duration-300",
-                  isGridFocused 
-                    ? "border-blue-500/50 bg-blue-900/20 text-blue-300" 
-                    : "border-gray-600/50 bg-gray-800/20 text-gray-400"
-                )}>
-                  {isGridFocused 
-                    ? `🎯 Grid Active - Use ${mouseEnabled ? "Keyboard Keys or Click" : "Keyboard Keys"}` 
-                    : "💤 Click Grid to Enable Keyboard Control"}
-                </div>
-              </div>
-            )}
-
             <AnimatePresence mode="wait">
               <motion.div
                 key={isReplaying ? `replay-${replayStep}` : currentStep}
@@ -609,40 +508,9 @@ export function ColorKeyDemo() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <motion.div
-                          data-grid-container
-                          className={cn(
-                            "grid w-full max-w-xl mx-auto gap-4 p-8 rounded-lg border-2 transition-all duration-300 cursor-pointer relative",
-                            !mouseEnabled && "cursor-not-allowed",
-                            isGridFocused && isActive && !isComplete && !isReplaying 
-                              ? "border-blue-500/50 bg-blue-900/10 shadow-lg shadow-blue-500/20" 
-                              : "border-cyan-400/40 bg-cyan-900/5 shadow-lg shadow-cyan-400/30 hover:border-cyan-400/60 hover:shadow-xl hover:shadow-cyan-400/40"
-                          )}
-                          animate={
-                            !isGridFocused && isActive && !isComplete && !isReplaying
-                              ? {
-                                  boxShadow: [
-                                    "0 4px 6px -1px rgba(34, 211, 238, 0.3), 0 2px 4px -1px rgba(34, 211, 238, 0.2), 0 0 20px rgba(34, 211, 238, 0.1)",
-                                    "0 10px 15px -3px rgba(34, 211, 238, 0.4), 0 4px 6px -2px rgba(34, 211, 238, 0.3), 0 0 30px rgba(34, 211, 238, 0.2)",
-                                    "0 4px 6px -1px rgba(34, 211, 238, 0.3), 0 2px 4px -1px rgba(34, 211, 238, 0.2), 0 0 20px rgba(34, 211, 238, 0.1)"
-                                  ],
-                                  borderColor: [
-                                    "rgba(34, 211, 238, 0.4)",
-                                    "rgba(34, 211, 238, 0.7)",
-                                    "rgba(34, 211, 238, 0.4)"
-                                  ]
-                                }
-                              : {}
-                          }
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                          onClick={() => !isInputFocused && setIsGridFocused(true)}
-                          onBlur={() => setIsGridFocused(false)}
-                          tabIndex={0}
-                          style={{ gridTemplateColumns: numQuadrants === 4 ? "repeat(2, 1fr)" : numQuadrants <= 6 ? "repeat(3, 1fr)" : numQuadrants <= 9 ? "repeat(3, 1fr)" : "repeat(auto-fit, minmax(120px, 1fr))" }}
+                        <div
+                          className={cn("grid w-full max-w-xl mx-auto gap-4", !mouseEnabled && "cursor-not-allowed")}
+                          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))" }}
                         >
                           {hyperplane.slice(0, numQuadrants).map((quadrant, quadrantIndex) => (
                             <motion.button
@@ -651,7 +519,7 @@ export function ColorKeyDemo() {
                               animate={{ x: showFeedback && errorQuadrant === quadrantIndex ? [-5, 5, -5, 5, 0] : 0 }}
                               transition={{ duration: 0.3 }}
                               className={cn(
-                                "aspect-square rounded-lg p-2 transition-all duration-200 relative",
+                                "aspect-square rounded-lg p-2 transition-all duration-200",
                                 "focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950",
                                 !isActive && "bg-gray-800/20 border-gray-700/50 cursor-not-allowed",
                                 isActive &&
@@ -663,7 +531,6 @@ export function ColorKeyDemo() {
                                 showFeedback &&
                                   keyboardSelection === quadrantIndex &&
                                   "border-blue-400 ring-2 ring-blue-400",
-                                flashErrorOnHyperplanes && "animate-pulse border-red-500 shadow-lg shadow-red-500/50",
                                 !mouseEnabled && "pointer-events-none",
                               )}
                               aria-label={`Select quadrant ${quadrantIndex + 1}`}
@@ -676,7 +543,7 @@ export function ColorKeyDemo() {
                                 {quadrant.map((char, charIndex) => (
                                   <div
                                     key={charIndex}
-                                    className="aspect-square flex items-center justify-center rounded-sm bg-black/10 border border-white/5 min-h-[24px] min-w-[24px]"
+                                    className="flex items-center justify-center rounded-sm bg-black/10 border border-white/5"
                                   >
                                     <span
                                       className={cn(
@@ -690,13 +557,9 @@ export function ColorKeyDemo() {
                                   </div>
                                 ))}
                               </div>
-                              {/* Hyperplane Number Indicator */}
-                              <div className="absolute bottom-1 right-1 bg-gray-800/80 text-gray-300 text-xs rounded px-1 py-0.5 pointer-events-none">
-                                {quadrantIndex + 1}
-                              </div>
                             </motion.button>
                           ))}
-                        </motion.div>
+                        </div>
                       </TooltipTrigger>
                       {!mouseEnabled && (
                         <TooltipContent>
@@ -707,23 +570,6 @@ export function ColorKeyDemo() {
                   </TooltipProvider>
                 </motion.div>
               </motion.div>
-            </AnimatePresence>
-
-            {/* Error Feedback Message */}
-            <AnimatePresence>
-              {showIncorrectSelectionError && (
-                <motion.div
-                  className="flex justify-center mt-4"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <p className="text-red-500 text-sm font-medium bg-red-900/20 border border-red-500/30 rounded-md px-4 py-2">
-                    Incorrect selection. Try again.
-                  </p>
-                </motion.div>
-              )}
             </AnimatePresence>
 
             <AnimatePresence>
@@ -768,7 +614,7 @@ export function ColorKeyDemo() {
                     <SettingsSlider
                       label="Characters per Hyperplane"
                       value={charsPerQuadrant}
-                      onValueChange={(v) => setCharsPerQuadrant(Math.min(v[0], 12))}
+                      onValueChange={(v) => setCharsPerQuadrant(v[0])}
                       min={4}
                       max={12}
                       step={1}
@@ -847,15 +693,7 @@ export function ColorKeyDemo() {
           </Button>
           <Button
             variant="outline"
-            onClick={handleSubmit}
-            disabled={!isActive}
-            className="flex-1 sm:flex-auto min-w-[140px] border-purple-500 text-purple-400 hover:bg-purple-900/20 hover:text-purple-300 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <CheckCircle2 className="w-4 h-4 mr-2" /> Submit
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleFullRestart}
+            onClick={handleRestart}
             disabled={!isActive}
             className="flex-1 sm:flex-auto min-w-[140px] border-red-500 text-red-400 hover:bg-red-900/20 hover:text-red-300 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
           >

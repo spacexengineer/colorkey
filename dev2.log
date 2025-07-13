@@ -1,0 +1,161 @@
+
+> my-v0-project@0.1.0 dev /Users/huntercasbeer/Documents/colorkey/colorkey
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+   ▲ Next.js 15.2.4
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.50.122:3001
+
+ ✓ Starting...
+ ✓ Ready in 1113ms
+ ○ Compiling / ...
+ ✓ Compiled / in 5.1s (1580 modules)
+ GET / 200 in 5432ms
+ ✓ Compiled in 392ms (778 modules)
+ ✓ Compiled in 200ms (778 modules)
+ ✓ Compiled in 185ms (778 modules)
+ ✓ Compiled in 158ms (778 modules)
+ ✓ Compiled in 189ms (778 modules)
+ ✓ Compiled in 284ms (778 modules)
+ ✓ Compiled in 281ms (778 modules)
+ ✓ Compiled in 176ms (778 modules)
+ ✓ Compiled in 172ms (778 modules)
+ ⨯ ./components/color-key-demo.tsx
+Module parse failed: Identifier 'resetState' has already been declared (532:10)
+|         isReplaying
+|     ]);
+>     const resetState = ()=>{
+|         setLoginPassword("");
+|         setCurrentStep(0);
+
+Import trace for requested module:
+./components/color-key-demo.tsx
+./app/page.tsx
+ ✓ Compiled in 171ms (778 modules)
+ ✓ Compiled in 149ms (778 modules)
+ ✓ Compiled in 290ms (778 modules)
+ ✓ Compiled in 177ms (778 modules)
+ ✓ Compiled in 133ms (778 modules)
+ ✓ Compiled in 168ms (778 modules)
+ ✓ Compiled in 140ms (778 modules)
+ ✓ Compiled in 177ms (778 modules)
+ ✓ Compiled in 132ms (778 modules)
+ ✓ Compiled in 123ms (778 modules)
+ ✓ Compiled in 137ms (778 modules)
+ ✓ Compiled in 160ms (778 modules)
+ ✓ Compiled in 136ms (778 modules)
+ ✓ Compiled in 155ms (778 modules)
+ ✓ Compiled in 171ms (778 modules)
+ ✓ Compiled in 145ms (778 modules)
+ ✓ Compiled in 157ms (778 modules)
+ ✓ Compiled in 133ms (778 modules)
+ ✓ Compiled in 146ms (778 modules)
+ ✓ Compiled in 163ms (778 modules)
+ ✓ Compiled in 173ms (778 modules)
+ ✓ Compiled in 137ms (778 modules)
+ ✓ Compiled in 154ms (778 modules)
+ ✓ Compiled in 166ms (778 modules)
+ ✓ Compiled in 148ms (778 modules)
+ ✓ Compiled in 133ms (778 modules)
+ ✓ Compiled in 155ms (778 modules)
+ ✓ Compiled in 199ms (778 modules)
+ ✓ Compiled in 182ms (778 modules)
+ ✓ Compiled in 199ms (778 modules)
+ ✓ Compiled in 143ms (778 modules)
+ ✓ Compiled in 132ms (778 modules)
+ ✓ Compiled in 163ms (778 modules)
+ ✓ Compiled in 123ms (778 modules)
+ ✓ Compiled in 175ms (778 modules)
+ ✓ Compiled in 294ms (778 modules)
+ ✓ Compiled in 167ms (778 modules)
+ ✓ Compiled in 184ms (778 modules)
+ ✓ Compiled in 184ms (778 modules)
+ ✓ Compiled in 191ms (778 modules)
+ ✓ Compiled in 178ms (778 modules)
+ ⨯ ./components/color-key-demo.tsx
+Error:   [31mx[0m Unexpected token `Card`. Expected jsx identifier
+     ,-[[36;1;4m/Users/huntercasbeer/Documents/colorkey/colorkey/components/color-key-demo.tsx[0m:502:1]
+ [2m499[0m |   }
+ [2m500[0m | 
+ [2m501[0m |   return (
+ [2m502[0m |     <Card className="bg-gray-900/50 border-gray-800 backdrop-blur-lg w-full max-w-5xl mx-auto overflow-hidden">
+     : [35;1m     ^^^^[0m
+ [2m503[0m |       <fieldset disabled={isReplaying} className="group">
+ [2m504[0m |         <div className="grid lg:grid-cols-5">
+ [2m505[0m |           <div className="lg:col-span-3 p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-gray-800">
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./components/color-key-demo.tsx
+./app/page.tsx
+ ✓ Compiled in 148ms (778 modules)
+ ✓ Compiled in 234ms (778 modules)
+ ✓ Compiled in 158ms (778 modules)
+ ✓ Compiled in 143ms (778 modules)
+ ✓ Compiled in 195ms (778 modules)
+ ✓ Compiled in 192ms (778 modules)
+ ✓ Compiled in 197ms (778 modules)
+ ✓ Compiled in 178ms (778 modules)
+ ✓ Compiled in 168ms (778 modules)
+ ✓ Compiled in 146ms (778 modules)
+ ✓ Compiled in 132ms (778 modules)
+ ✓ Compiled in 169ms (778 modules)
+ ✓ Compiled in 207ms (778 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/Users/huntercasbeer/Documents/colorkey/colorkey/.next/cache/webpack/client-development/1.pack.gz_' -> '/Users/huntercasbeer/Documents/colorkey/colorkey/.next/cache/webpack/client-development/1.pack.gz'
+ ✓ Compiled in 157ms (778 modules)
+ ✓ Compiled in 175ms (778 modules)
+ ✓ Compiled in 226ms (778 modules)
+ ✓ Compiled in 285ms (778 modules)
+ ✓ Compiled in 215ms (778 modules)
+ ✓ Compiled in 187ms (778 modules)
+ ✓ Compiled in 147ms (778 modules)
+ ✓ Compiled in 162ms (778 modules)
+ ✓ Compiled in 193ms (778 modules)
+ ✓ Compiled in 150ms (778 modules)
+ ✓ Compiled in 183ms (778 modules)
+ ✓ Compiled in 163ms (778 modules)
+ ✓ Compiled in 195ms (778 modules)
+ ⨯ ./app/page.tsx
+Error:   [31mx[0m Unexpected token `div`. Expected jsx identifier
+   ,-[[36;1;4m/Users/huntercasbeer/Documents/colorkey/colorkey/app/page.tsx[0m:6:1]
+ [2m3[0m | 
+ [2m4[0m | export default function LandingPage() {
+ [2m5[0m |   return (
+ [2m6[0m |     <div className="bg-gray-950 text-gray-50 min-h-screen flex flex-col items-center p-4 sm:p-6 lg:p-8">
+   : [35;1m     ^^^[0m
+ [2m7[0m |       <div className="absolute inset-0 -z-10 h-full w-full bg-gray-950 bg-[radial-gradient(#1d4ed8_1px,transparent_1px)] [background-size:32px_32px]" />
+ [2m8[0m | 
+ [2m9[0m | <header className="w-full py-6">
+   `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/page.tsx
+ ⨯ ./app/page.tsx
+Error:   [31mx[0m Unexpected token `div`. Expected jsx identifier
+   ,-[[36;1;4m/Users/huntercasbeer/Documents/colorkey/colorkey/app/page.tsx[0m:6:1]
+ [2m3[0m | 
+ [2m4[0m | export default function LandingPage() {
+ [2m5[0m |   return (
+ [2m6[0m |     <div className="bg-gray-950 text-gray-50 min-h-screen flex flex-col items-center p-4 sm:p-6 lg:p-8">
+   : [35;1m     ^^^[0m
+ [2m7[0m |       <div className="absolute inset-0 -z-10 h-full w-full bg-gray-950 bg-[radial-gradient(#1d4ed8_1px,transparent_1px)] [background-size:32px_32px]" />
+ [2m8[0m | 
+ [2m9[0m | <header className="w-full py-6">
+   `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./app/page.tsx
+ ✓ Compiled in 150ms (778 modules)
+ ✓ Compiled in 259ms (778 modules)
+ ✓ Compiled in 130ms (778 modules)
+ ✓ Compiled in 402ms (778 modules)
