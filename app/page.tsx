@@ -6,11 +6,6 @@ export default function LandingPage() {
     <div className="bg-gray-950 text-gray-50 min-h-screen flex flex-col items-center p-4 sm:p-6 lg:p-8">
       <div className="absolute inset-0 -z-10 h-full w-full bg-gray-950 bg-[radial-gradient(#1d4ed8_1px,transparent_1px)] [background-size:32px_32px]" />
 
-      <header className="w-full py-6">
-        <div className="container max-w-3xl mx-auto text-center">
-          <h1 className="text-xl font-semibold text-gray-400">ColorKey.ai</h1>
-        </div>
-      </header>
 
       <main className="flex-1 w-full">
         <section
