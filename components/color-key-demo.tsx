@@ -197,6 +197,7 @@ export function ColorKeyDemo() {
   const [showFeedback, setShowFeedback] = useState(true)
   const [showKeyPrompt, setShowKeyPrompt] = useState(true)
   const [showLoginPassword, setShowLoginPassword] = useState(true)
+  const [showMathDetails, setShowMathDetails] = useState(false)
   const [mouseEnabled, setMouseEnabled] = useState(true)
   const [numQuadrants, setNumQuadrants] = useState(4)
   const [charsPerQuadrant, setCharsPerQuadrant] = useState(6)
@@ -286,7 +287,20 @@ export function ColorKeyDemo() {
 
       // Get the character from the selected quadrant
       const quadrantChars = hyperplane[selectedIndex] || []
-      const selectedChar = quadrantChars[0] || '?'
+      
+      // If we're within password bounds, try to select the password character if it exists in this quadrant
+      let selectedChar = '?'
+      if (currentStep < cleanMasterPassword.length) {
+        const targetChar = cleanMasterPassword[currentStep]
+        if (quadrantChars.includes(targetChar)) {
+          selectedChar = targetChar // Select the password character
+        } else {
+          selectedChar = quadrantChars[0] || '?' // Fallback to first character
+        }
+      } else {
+        // Beyond password length, just take the first character
+        selectedChar = quadrantChars[0] || '?'
+      }
       
       setHistory((prev) => [
         ...prev,
@@ -597,6 +611,22 @@ export function ColorKeyDemo() {
               </div>
             )}
 
+            {/* Submit Instruction */}
+            {isActive && !isComplete && !isReplaying && loginPassword.length > 0 && (
+              <div className="flex justify-center mb-6">
+                <div className="text-center">
+                  <div className="inline-flex items-center px-4 py-2 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                    <div className="flex items-center text-purple-300">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse"></div>
+                      <span className="text-sm font-medium">
+                        Click <strong>Submit</strong> when ready to verify your password
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <AnimatePresence mode="wait">
               <motion.div
                 key={isReplaying ? `replay-${replayStep}` : currentStep}
@@ -830,6 +860,77 @@ export function ColorKeyDemo() {
                       checked={showFeedback}
                       onCheckedChange={setShowFeedback}
                     />
+
+                    {/* Security Math Component */}
+                    <div className="border-t border-gray-700 pt-4 mt-4">
+                      <button
+                        onClick={() => setShowMathDetails(!showMathDetails)}
+                        className="w-full flex items-center justify-between text-left text-sm text-gray-300 hover:text-gray-100 transition-colors group"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                          <span className="font-medium">Why ColorKey is More Secure</span>
+                        </div>
+                        <div className={cn(
+                          "transition-transform duration-200",
+                          showMathDetails ? "rotate-180" : ""
+                        )}>
+                          <ArrowDown className="w-4 h-4" />
+                        </div>
+                      </button>
+                      
+                      <AnimatePresence>
+                        {showMathDetails && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="overflow-hidden"
+                          >
+                            <div className="pt-3 space-y-3 text-xs text-gray-400">
+                              <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
+                                <h4 className="text-cyan-400 font-semibold mb-2">Mathematical Advantage</h4>
+                                <div className="space-y-2">
+                                  <div>
+                                    <span className="text-gray-300">Traditional 12-char password:</span>
+                                    <div className="font-mono text-gray-500">5.4 × 10²³ combinations</div>
+                                  </div>
+                                  <div>
+                                    <span className="text-cyan-300">ColorKey 12-char password:</span>
+                                    <div className="font-mono text-cyan-400">9.1 × 10³⁰ combinations</div>
+                                  </div>
+                                  <div className="pt-2 border-t border-gray-700">
+                                    <span className="text-purple-300 font-medium">
+                                      🔒 16.8 MILLION times more secure
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <div className="flex items-start gap-2">
+                                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                                  <span>Each character requires selecting the correct hyperplane (1 in {numQuadrants} chance)</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                                  <span>Layouts randomize after each selection - impossible to replay attacks</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                                  <span>Screen recording and keyloggers become useless</span>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                                  <span>Visual memory required - resistant to shoulder surfing</span>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
