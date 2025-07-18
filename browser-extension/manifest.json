@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "ColorKey MetaMask Integration",
+  "version": "1.0.0",
+  "description": "Replace MetaMask password input with ColorKey visual authentication",
+  
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  
+  "host_permissions": [
+    "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/*",
+    "moz-extension://*/*",
+    "*://*/*"
+  ],
+  
+  "content_scripts": [
+    {
+      "matches": [
+        "chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/*",
+        "moz-extension://*/*"
+      ],
+      "js": ["content-script.js"],
+      "css": ["colorkey-styles.css"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["colorkey-popup.html", "colorkey-popup.js", "colorkey-styles.css"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ColorKey MetaMask Integration"
+  },
+  
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}
