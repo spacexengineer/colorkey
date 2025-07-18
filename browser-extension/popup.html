@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ColorKey MetaMask Integration</title>
+  <style>
+    body {
+      width: 350px;
+      padding: 20px;
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+    
+    h1 {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 600;
+    }
+    
+    .subtitle {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    
+    .status {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .status-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .status-icon {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .status-text {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .status-description {
+      font-size: 12px;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+    
+    .toggle-section {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .toggle-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .toggle.active {
+      background: rgba(76, 175, 80, 0.8);
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    
+    .toggle.active .toggle-slider {
+      transform: translateX(20px);
+    }
+    
+    .features {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    
+    .features h3 {
+      font-size: 14px;
+      margin: 0 0 12px 0;
+      font-weight: 600;
+    }
+    
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .feature-list li {
+      font-size: 12px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .feature-icon {
+      width: 12px;
+      height: 12px;
+      opacity: 0.8;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 11px;
+      opacity: 0.7;
+    }
+    
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">
+      <svg class="status-icon" fill="white" viewBox="0 0 24 24">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+    </div>
+    <h1>ColorKey Integration</h1>
+    <div class="subtitle">Visual Authentication for MetaMask</div>
+  </div>
+  
+  <div class="status" id="status">
+    <div class="status-header">
+      <svg class="status-icon" id="status-icon" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <div class="status-text" id="status-text">Checking MetaMask...</div>
+    </div>
+    <div class="status-description" id="status-description">
+      Scanning for MetaMask extension and password inputs
+    </div>
+  </div>
+  
+  <div class="toggle-section">
+    <div class="toggle-row">
+      <div class="toggle-label">Enable ColorKey</div>
+      <div class="toggle active" id="toggle">
+        <div class="toggle-slider"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="features">
+    <h3>Security Features</h3>
+    <ul class="feature-list">
+      <li>
+        <svg class="feature-icon" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Visual password authentication
+      </li>
+      <li>
+        <svg class="feature-icon" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        16.8M times more secure
+      </li>
+      <li>
+        <svg class="feature-icon" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Keylogger protection
+      </li>
+      <li>
+        <svg class="feature-icon" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Screen recording immunity
+      </li>
+    </ul>
+  </div>
+  
+  <div class="footer">
+    <div>ColorKey v1.0.0</div>
+    <div>Secure • Private • Visual</div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
