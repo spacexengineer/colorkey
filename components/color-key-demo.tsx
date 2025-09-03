@@ -247,9 +247,9 @@ export function ColorKeyDemo({
   const [showKeyMapping, setShowKeyMapping] = useState(true);
   const [showFeedback, setShowFeedback] = useState(true);
   const [showKeyPrompt, setShowKeyPrompt] = useState(true);
-  const [showLoginPassword, setShowLoginPassword] = useState(true);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showMathDetails, setShowMathDetails] = useState(false);
-  const [mouseEnabled, setMouseEnabled] = useState(true);
+  const [mouseEnabled, setMouseEnabled] = useState(false);
   const [numQuadrants, setNumQuadrants] = useState(4);
   const [charsPerQuadrant, setCharsPerQuadrant] = useState(6);
   const [includeUppercase, setIncludeUppercase] = useState(true);
@@ -434,8 +434,8 @@ export function ColorKeyDemo({
     if (numQuadrants <= 4) {
       map["arrowup"] = 0;
       map["arrowright"] = 1;
-      map["arrowdown"] = 3;
-      map["arrowleft"] = 2;
+      map["arrowdown"] = 2;
+      map["arrowleft"] = 3;
     } else {
       for (let i = 0; i < numQuadrants; i++) {
         map[KEY_POOL[i].toLowerCase()] = i;
@@ -1254,9 +1254,7 @@ const KeyMappingLegend = ({
         : key === "arrowdown"
         ? ArrowDown
         : ArrowLeft;
-    const quadrantName = isArrowMapping
-      ? quadrantNames[quadrant]
-      : `Quadrant ${quadrant + 1}`;
+    const quadrantName = `Quadrant ${quadrant + 1}`;
 
     return (
       <div
