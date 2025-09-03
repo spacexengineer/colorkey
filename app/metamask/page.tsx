@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Info, TestTube, Wallet } from "lucide-react"
+import { Info, TestTube, Wallet, ArrowLeft } from "lucide-react"
+
+import Link from "next/link"
 
 export default function MetaMaskPage() {
   const [activeTab, setActiveTab] = useState("demo")
@@ -18,12 +20,23 @@ export default function MetaMaskPage() {
       <div className="absolute inset-0 -z-10 h-full w-full bg-gray-950 bg-[radial-gradient(#ff6b00_1px,transparent_1px)] [background-size:32px_32px] opacity-20" />
       
       <main className="flex-1 w-full max-w-6xl mx-auto py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">MetaMask + ColorKey Integration</h1>
+        <div className="mb-8">
+          <Link href="/">
+            <Button 
+              variant="outline" 
+              className="mb-6 border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-gray-100 bg-transparent"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </Link>
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4">MetaMask + ColorKey Integration</h1>
           <p className="text-gray-400 max-w-2xl mx-auto">
             Experience the future of wallet security with ColorKey's visual authentication system. 
             Try our demo or connect your real MetaMask wallet.
           </p>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

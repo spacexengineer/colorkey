@@ -26,6 +26,7 @@ import {
   Info,
   Check,
   Wallet,
+  Keyboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -751,9 +752,24 @@ export function ColorKeyDemo({
               </AnimatePresence>
             </div>
 
-            {/* Grid Focus Indicator */}
+            {/* Grid Focus Button and Indicator */}
             {isActive && !isComplete && !isReplaying && (
-              <div className="flex justify-center mb-4">
+              <div className="flex flex-col items-center gap-3 mb-4">
+                {!isGridFocused && (
+                  <Button
+                    onClick={() => {
+                      setIsGridFocused(true);
+                      // Focus the grid container
+                      const gridElement = document.querySelector('[data-grid-container]') as HTMLElement;
+                      gridElement?.focus();
+                    }}
+                    variant="outline"
+                    className="border-blue-500/50 text-blue-300 hover:text-blue-300 hover:bg-blue-900/30 hover:border-blue-400 bg-blue-900/10 transition-all"
+                  >
+                    <Keyboard className="w-4 h-4 mr-2" />
+                    Activate Keyboard Control
+                  </Button>
+                )}
                 <div
                   className={cn(
                     "text-xs px-3 py-1 rounded-full border transition-all duration-300",
@@ -763,12 +779,10 @@ export function ColorKeyDemo({
                   )}
                 >
                   {isGridFocused
-                    ? `🎯 Grid Active - Use ${
-                        mouseEnabled
-                          ? "Keyboard Keys or Click"
-                          : "Keyboard Keys"
+                    ? `Keyboard Active - Use Arrow Keys${
+                        numQuadrants > 4 ? " or Letter Keys" : ""
                       }`
-                    : "💤 Click Grid to Enable Keyboard Control"}
+                    : "Keyboard Control Inactive"}
                 </div>
               </div>
             )}
@@ -817,7 +831,7 @@ export function ColorKeyDemo({
                               isActive &&
                               !isComplete &&
                               !isReplaying
-                              ? "border-blue-500/50 bg-blue-900/10 shadow-lg shadow-blue-500/20"
+                              ? "border-blue-500/50 bg-blue-900/10 shadow-lg shadow-blue-500/20 ring-2 ring-blue-400/50"
                               : "border-cyan-400/40 bg-cyan-900/5 shadow-lg shadow-cyan-400/30 hover:border-cyan-400/60 hover:shadow-xl hover:shadow-cyan-400/40"
                           )}
                           animate={
@@ -938,9 +952,14 @@ export function ColorKeyDemo({
                             ))}
                         </motion.div>
                       </TooltipTrigger>
-                      {!mouseEnabled && (
+                      {!mouseEnabled && !isGridFocused && (
                         <TooltipContent>
-                          <p>Mouse clicks disabled. Use keyboard.</p>
+                          <p>Click "Activate Keyboard Control" button to use arrow keys</p>
+                        </TooltipContent>
+                      )}
+                      {!mouseEnabled && isGridFocused && (
+                        <TooltipContent>
+                          <p>Use arrow keys to select quadrants</p>
                         </TooltipContent>
                       )}
                     </Tooltip>
