@@ -42,19 +42,19 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section id="hyperplans" className="container pb-16 sm:pb-24">
+        <section id="hyperplanes" className="container pb-16 sm:pb-24">
           <div className="text-center max-w-4xl mx-auto">
             <h3 className="text-3xl font-bold tracking-tight sm:text-4xl mb-8">
-              Hyperplans: Visual Security Matrix
+              Hyperplanes: Visual Security Matrix
             </h3>
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div className="space-y-4 text-left">
                 <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
                   <h4 className="text-xl font-semibold text-blue-400 mb-3">
-                    What are Hyperplans?
+                    What are Hyperplanes?
                   </h4>
                   <p className="text-gray-300 mb-4">
-                    Hyperplans are visual grids that present character options
+                    Hyperplanes are visual grids that present character options
                     in randomized quadrants. Each time you need to enter a
                     character, the system generates a unique layout.
                   </p>
@@ -105,7 +105,7 @@ export default function LandingPage() {
               </div>
               <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
                 <h4 className="text-xl font-semibold text-cyan-400 mb-4 text-center">
-                  Example Hyperplan Layout
+                  Example Hyperplane Layout
                 </h4>
                 <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
                   <div className="aspect-square bg-gray-800 border border-gray-700 rounded-lg p-3">
