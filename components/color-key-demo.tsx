@@ -156,6 +156,8 @@ export function ColorKeyDemo({
   // Device detection and mouse control
   const [isMobile, setIsMobile] = useState(false);
   const [mouseEnabled, setMouseEnabled] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(0);
+  const [hasHorizontalScroll, setHasHorizontalScroll] = useState(false);
 
   const characterSet = useMemo(() => {
     let set = "";
@@ -242,14 +244,51 @@ export function ColorKeyDemo({
       const isTouch = window.matchMedia('(pointer: coarse)').matches;
       const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       const mobile = isTouch || isMobileUA;
+
+      // Check viewport width and horizontal scroll
+      const vw = window.innerWidth;
+      const hasScroll = document.documentElement.scrollWidth > document.documentElement.clientWidth;
+
       setIsMobile(mobile);
+      setViewportWidth(vw);
+      setHasHorizontalScroll(hasScroll);
+
       // Enable mouse clicks by default on mobile, disable on desktop
       setMouseEnabled(mobile);
+
+      // Determine max limits based on viewport width and scroll presence
+      let maxHyperplanes = 10;
+      let maxChars = 12;
+
+      if (vw <= 390 || hasScroll) {
+        // iPhone 12 Pro or horizontal scroll detected
+        maxHyperplanes = 9;
+        maxChars = 8;
+      } else if (vw <= 768) {
+        // Small tablets/large phones
+        maxHyperplanes = 9;
+        maxChars = 10;
+      }
+
+      // Adjust current values if they exceed new limits
+      if (numQuadrants > maxHyperplanes) {
+        setNumQuadrants(maxHyperplanes);
+      }
+      if (charsPerQuadrant > maxChars) {
+        setCharsPerQuadrant(maxChars);
+      }
     };
 
     checkDevice();
     window.addEventListener('resize', checkDevice);
-    return () => window.removeEventListener('resize', checkDevice);
+
+    // Also check for scroll changes after layout updates
+    const scrollCheckInterval = setInterval(checkDevice, 500);
+
+    return () => {
+      window.removeEventListener('resize', checkDevice);
+      clearInterval(scrollCheckInterval);
+    };
   }, []);
   useEffect(() => {
     if (!isReplaying && isMounted) {
@@ -792,11 +831,11 @@ export function ColorKeyDemo({
                             data-grid-container
                             className={cn(
                               "grid w-fit rounded-lg border-2 transition-all duration-300 cursor-pointer relative mx-auto",
-                              charsPerQuadrant <= 4 ? "gap-6 sm:gap-8 p-8 sm:p-10" :
-                              charsPerQuadrant <= 6 ? "gap-4 sm:gap-6 p-6 sm:p-8" :
-                              charsPerQuadrant <= 9 ? "gap-3 sm:gap-4 p-4 sm:p-6" :
-                              charsPerQuadrant <= 12 ? "gap-2 sm:gap-3 p-3 sm:p-4" :
-                              "gap-2 p-2 sm:p-3",
+                              charsPerQuadrant <= 4 ? "gap-2 sm:gap-6 p-3 sm:p-8" :
+                              charsPerQuadrant <= 6 ? "gap-1.5 sm:gap-4 p-2.5 sm:p-6" :
+                              charsPerQuadrant <= 9 ? "gap-1 sm:gap-3 p-2 sm:p-4" :
+                              charsPerQuadrant <= 12 ? "gap-1 sm:gap-2 p-1.5 sm:p-3" :
+                              "gap-0.5 p-1 sm:gap-2 sm:p-2",
                               !mouseEnabled && !isMobile && "cursor-not-allowed",
                               isGridFocused &&
                                 isActive &&
@@ -867,12 +906,12 @@ export function ColorKeyDemo({
                                   "aspect-square rounded-lg transition-all duration-200 relative overflow-hidden",
                                   getQuadrantPadding,
                                   "focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950",
-                                  // Dynamic sizes - increase or maintain size as character count increases
-                                  charsPerQuadrant <= 4 ? "min-h-[100px] min-w-[100px]" :
-                                  charsPerQuadrant <= 6 ? "min-h-[120px] min-w-[120px]" :
-                                  charsPerQuadrant <= 9 ? "min-h-[140px] min-w-[140px]" :
-                                  charsPerQuadrant <= 12 ? "min-h-[160px] min-w-[160px]" :
-                                  "min-h-[180px] min-w-[180px]",
+                                  // Dynamic sizes - mobile responsive for iPhone 12
+                                  charsPerQuadrant <= 4 ? "min-h-[60px] min-w-[60px] sm:min-h-[100px] sm:min-w-[100px]" :
+                                  charsPerQuadrant <= 6 ? "min-h-[65px] min-w-[65px] sm:min-h-[120px] sm:min-w-[120px]" :
+                                  charsPerQuadrant <= 9 ? "min-h-[70px] min-w-[70px] sm:min-h-[140px] sm:min-w-[140px]" :
+                                  charsPerQuadrant <= 12 ? "min-h-[75px] min-w-[75px] sm:min-h-[160px] sm:min-w-[160px]" :
+                                  "min-h-[80px] min-w-[80px] sm:min-h-[180px] sm:min-w-[180px]",
                                   !isActive &&
                                     "bg-gray-800/20 border-gray-700/50 cursor-not-allowed",
                                   isActive &&
@@ -1045,14 +1084,19 @@ export function ColorKeyDemo({
                           }
                         }}
                         min={4}
-                        max={10}
+                        max={
+                          viewportWidth <= 390 || hasHorizontalScroll ? 9 :
+                          viewportWidth <= 768 ? 9 : 10
+                        }
                         step={1}
                       />
                       <SettingsSlider
                         label="Characters per Hyperplane"
                         value={charsPerQuadrant}
                         onValueChange={(v) => {
-                          setCharsPerQuadrant(Math.min(v[0], 12));
+                          const maxChars = viewportWidth <= 390 || hasHorizontalScroll ? 8 :
+                                       viewportWidth <= 768 ? 10 : 12;
+                          setCharsPerQuadrant(Math.min(v[0], maxChars));
                           // Clear existing hyperplane and force regeneration
                           setHyperplane([]);
                           if (isActive && isMounted) {
@@ -1060,7 +1104,10 @@ export function ColorKeyDemo({
                           }
                         }}
                         min={4}
-                        max={12}
+                        max={
+                          viewportWidth <= 390 || hasHorizontalScroll ? 8 :
+                          viewportWidth <= 768 ? 10 : 12
+                        }
                         step={1}
                       />
                       <div className="space-y-2 rounded-lg border border-gray-800 p-3 bg-gray-900/50">
