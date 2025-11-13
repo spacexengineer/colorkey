@@ -23,10 +23,9 @@ import {
   ArrowRight,
   History,
   StopCircle,
-  Info,
-  Check,
   Wallet,
   Keyboard,
+  Shuffle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -65,147 +64,44 @@ const generateHyperplaneForChar = (
   charsPerQuadrant: number,
   characterSet: string
 ): string[][] => {
+  console.log(`generateHyperplaneForChar called with charsPerQuadrant: ${charsPerQuadrant}`);
   const correctQuadrantIndex = Math.floor(Math.random() * quadrantCount);
-  // 🚫 Enforce 12-character limit per hyperplane
-  const maxCharacters = Math.min(charsPerQuadrant, 12);
   const hyperplane: string[][] = [];
 
   for (let i = 0; i < quadrantCount; i++) {
-    const quadrantChars = new Set<string>();
-    const alphabetWithoutTarget = characterSet.replace(targetChar, "");
+    const quadrantChars: string[] = [];
+    const availableChars = characterSet.split('');
 
     if (i === correctQuadrantIndex) {
-      quadrantChars.add(targetChar);
-      while (quadrantChars.size < maxCharacters) {
-        const randomChar =
-          alphabetWithoutTarget[
-            Math.floor(Math.random() * alphabetWithoutTarget.length)
-          ];
-        quadrantChars.add(randomChar);
+      // Add target character first
+      quadrantChars.push(targetChar);
+      // Remove target char from available options
+      const remainingChars = availableChars.filter(c => c !== targetChar);
+
+      // Fill rest with random characters (allowing duplicates if needed)
+      while (quadrantChars.length < charsPerQuadrant) {
+        const randomChar = remainingChars[Math.floor(Math.random() * remainingChars.length)];
+        quadrantChars.push(randomChar);
       }
     } else {
-      while (quadrantChars.size < maxCharacters) {
-        const randomChar =
-          alphabetWithoutTarget[
-            Math.floor(Math.random() * alphabetWithoutTarget.length)
-          ];
-        quadrantChars.add(randomChar);
+      // Remove target char from available options
+      const remainingChars = availableChars.filter(c => c !== targetChar);
+
+      // Fill with random characters (allowing duplicates if needed)
+      while (quadrantChars.length < charsPerQuadrant) {
+        const randomChar = remainingChars[Math.floor(Math.random() * remainingChars.length)];
+        quadrantChars.push(randomChar);
       }
     }
-    hyperplane.push(Array.from(quadrantChars).sort(() => 0.5 - Math.random()));
+
+    console.log(`Quadrant ${i} generated with ${quadrantChars.length} characters:`, quadrantChars);
+    // Shuffle the quadrant
+    hyperplane.push(shuffleArray(quadrantChars));
   }
   return hyperplane;
 };
 
-const PasswordStrengthMeter = ({ password }: { password: string }) => {
-  const calculateStrength = () => {
-    let score = 0;
-    if (!password) return 0;
-    if (password.length >= 8) score++;
-    if (password.length > 12) score++;
-    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-    return score;
-  };
 
-  const strength = calculateStrength();
-  const strengthLevels = [
-    { label: "Very Weak", color: "bg-red-500", textColor: "text-red-400" },
-    { label: "Weak", color: "bg-red-500", textColor: "text-red-400" },
-    { label: "Medium", color: "bg-yellow-500", textColor: "text-yellow-400" },
-    { label: "Medium", color: "bg-yellow-500", textColor: "text-yellow-400" },
-    { label: "Strong", color: "bg-green-500", textColor: "text-green-400" },
-    {
-      label: "Very Strong",
-      color: "bg-green-500",
-      textColor: "text-green-400",
-    },
-  ];
-
-  if (!password) return null;
-
-  return (
-    <div className="space-y-2 mt-2">
-      <div className="grid grid-cols-5 gap-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "h-2 rounded-full transition-colors",
-              i < strength ? strengthLevels[strength].color : "bg-gray-700"
-            )}
-          />
-        ))}
-      </div>
-      <p
-        className={cn(
-          "text-xs text-right font-medium",
-          strengthLevels[strength].textColor
-        )}
-      >
-        {strengthLevels[strength].label}
-      </p>
-    </div>
-  );
-};
-
-const PasswordEntropyDetails = ({
-  password,
-  isVisible,
-}: {
-  password: string;
-  isVisible: boolean;
-}) => {
-  const criteria = [
-    { label: "8+ characters", met: password.length >= 8 },
-    {
-      label: "Uppercase & lowercase",
-      met: /[A-Z]/.test(password) && /[a-z]/.test(password),
-    },
-    { label: "At least one number", met: /\d/.test(password) },
-    { label: "At least one symbol", met: /[^A-Za-z0-9]/.test(password) },
-  ];
-
-  return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: -10, height: 0 }}
-          animate={{ opacity: 1, y: 0, height: "auto" }}
-          exit={{ opacity: 0, y: -10, height: 0 }}
-          className="mt-4 p-4 bg-gray-900 border border-gray-800 rounded-lg"
-        >
-          <ul className="space-y-2 text-sm">
-            {criteria.map((item) => (
-              <li key={item.label} className="flex items-center gap-2">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: item.met ? 1 : 0 }}
-                >
-                  <Check className="w-4 h-4 text-green-400" />
-                </motion.div>
-                <span
-                  className={cn(item.met ? "text-gray-300" : "text-gray-500")}
-                >
-                  {item.label}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 pt-4 border-t border-gray-800 flex items-start gap-2 text-xs text-gray-400">
-            <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>
-              Strong passwords combine variety and unpredictability. Our visual
-              cipher adds another layer of entropy, making brute-force attacks
-              impractical.
-            </span>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
 
 interface ColorKeyDemoProps {
   onComplete?: (password: string) => void;
@@ -250,13 +146,16 @@ export function ColorKeyDemo({
   const [showKeyPrompt, setShowKeyPrompt] = useState(true);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showMathDetails, setShowMathDetails] = useState(false);
-  const [mouseEnabled, setMouseEnabled] = useState(false);
   const [numQuadrants, setNumQuadrants] = useState(4);
   const [charsPerQuadrant, setCharsPerQuadrant] = useState(6);
   const [includeUppercase, setIncludeUppercase] = useState(true);
   const [includeLowercase, setIncludeLowercase] = useState(true);
   const [includeNumbers, setIncludeNumbers] = useState(true);
   const [includeSymbols, setIncludeSymbols] = useState(true);
+
+  // Device detection and mouse control
+  const [isMobile, setIsMobile] = useState(false);
+  const [mouseEnabled, setMouseEnabled] = useState(false);
 
   const characterSet = useMemo(() => {
     let set = "";
@@ -287,12 +186,16 @@ export function ColorKeyDemo({
           setHyperplane(shuffleArray(newHyperplanes));
         } else {
           setHyperplane(
-            Array(numQuadrants).fill(Array(charsPerQuadrant).fill("?"))
+            Array.from({ length: numQuadrants }, () =>
+              Array(charsPerQuadrant).fill("?")
+            )
           );
         }
       } else {
         setHyperplane(
-          Array(numQuadrants).fill(Array(charsPerQuadrant).fill("•"))
+          Array.from({ length: numQuadrants }, () =>
+            Array(charsPerQuadrant).fill("•")
+          )
         );
       }
     },
@@ -330,9 +233,23 @@ export function ColorKeyDemo({
     resetState();
   };
 
-  // Mount effect to fix hydration
+  // Mount effect to fix hydration and detect device type
   useEffect(() => {
     setIsMounted(true);
+
+    // Detect device type
+    const checkDevice = () => {
+      const isTouch = window.matchMedia('(pointer: coarse)').matches;
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const mobile = isTouch || isMobileUA;
+      setIsMobile(mobile);
+      // Enable mouse clicks by default on mobile, disable on desktop
+      setMouseEnabled(mobile);
+    };
+
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
   }, []);
   useEffect(() => {
     if (!isReplaying && isMounted) {
@@ -348,6 +265,12 @@ export function ColorKeyDemo({
     characterSet,
     isMounted,
   ]);
+
+  // Force re-render when sizing parameters change
+  useEffect(() => {
+    // This effect ensures the component re-renders when sizing parameters change
+    // triggering recalculation of all dynamic sizing values
+  }, [numQuadrants, charsPerQuadrant]);
 
   const handleQuadrantSelection = useCallback(
     (selectedIndex: number) => {
@@ -590,8 +513,19 @@ export function ColorKeyDemo({
   // --- End Replay Logic ---
 
   const characterGridCols = useMemo(() => {
-    return `repeat(${Math.ceil(Math.sqrt(charsPerQuadrant))}, minmax(0, 1fr))`;
+    const cols = Math.ceil(Math.sqrt(charsPerQuadrant));
+    return `repeat(${cols}, 1fr)`;
   }, [charsPerQuadrant]);
+
+  // Keep character text size constant
+  const getCharacterCellSize = useMemo(() => {
+    return "text-sm sm:text-base";
+  }, []);
+
+  const getQuadrantPadding = useMemo(() => {
+    // Maintain consistent padding regardless of character count
+    return "p-2 sm:p-3";
+  }, []);
 
   const getInstruction = () => {
     if (isSubmissionFailed)
@@ -650,7 +584,8 @@ export function ColorKeyDemo({
   };
 
   return (
-    <Card className="bg-gray-900/50 border-gray-800 backdrop-blur-lg w-full max-w-5xl mx-auto overflow-hidden">
+    <div className="flex justify-center items-start min-h-screen w-full p-4">
+      <Card className="bg-gray-900/50 border-gray-800 backdrop-blur-lg w-full max-w-7xl overflow-auto">
       <fieldset disabled={isReplaying} className="group">
         {mode !== "demo" && (
           <div className="bg-gradient-to-r from-orange-500/10 to-orange-600/10 border border-orange-500/20 rounded-lg p-4 mb-6 mx-4 sm:mx-6">
@@ -671,14 +606,102 @@ export function ColorKeyDemo({
         )}
 
         <div
-          className={cn("grid", hideDemo ? "grid-cols-1" : "lg:grid-cols-5")}
+          className={cn(
+            "flex",
+            hideDemo ? "flex-col" : "flex-col lg:flex-row"
+          )}
         >
           <div
             className={cn(
-              hideDemo ? "col-span-1" : "lg:col-span-3",
-              "p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-gray-800"
+              "flex-1 min-w-0",
+              "border-b lg:border-b-0 lg:border-r border-gray-800"
             )}
           >
+            {/* Main content wrapper with controls on the side */}
+            <div className={cn(
+              "flex h-full overflow-hidden",
+              isMobile ? "flex-col" : "flex-row"
+            )}>
+              {/* Control Buttons Panel - Left Side on desktop, top on mobile */}
+              <div className={cn(
+                "flex gap-3 p-4 flex-shrink-0",
+                isMobile
+                  ? "flex-row justify-center flex-wrap border-b border-gray-800"
+                  : "flex-col justify-center border-r border-gray-800 w-auto min-w-[160px]"
+              )}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    // Shuffle the current hyperplane
+                    if (isActive && !isComplete && !isReplaying && hyperplane.length > 0) {
+                      setHyperplane(shuffleArray(hyperplane));
+                    }
+                  }}
+                  disabled={!isActive || isComplete || isReplaying}
+                  size={isMobile ? "sm" : "default"}
+                  className={cn(
+                    "flex items-center gap-2 border-cyan-500 text-cyan-400 hover:bg-cyan-900/20 hover:text-cyan-300 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed",
+                    !isMobile && "min-w-[140px]"
+                  )}
+                >
+                  <Shuffle className="w-4 h-4" />
+                  <span>Shuffle</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={handleBacktrack}
+                  disabled={currentStep === 0}
+                  size={isMobile ? "sm" : "default"}
+                  className={cn(
+                    "flex items-center gap-2 border-yellow-500 text-yellow-400 hover:bg-yellow-900/20 hover:text-yellow-300 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed",
+                    !isMobile && "min-w-[140px]"
+                  )}
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Backspace</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={handleGameRestart}
+                  disabled={!isActive}
+                  size={isMobile ? "sm" : "default"}
+                  className={cn(
+                    "flex items-center gap-2 border-red-500 text-red-400 hover:bg-red-900/20 hover:text-red-300 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed",
+                    !isMobile && "min-w-[140px]"
+                  )}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Reset</span>
+                </Button>
+
+                {!isMobile && isActive && !isComplete && !isReplaying && (
+                  <div className="mt-4 pt-4 border-t border-gray-700">
+                    <Button
+                      onClick={() => {
+                        setIsGridFocused(true);
+                        const gridElement = document.querySelector('[data-grid-container]') as HTMLElement;
+                        gridElement?.focus();
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "border transition-all",
+                        isGridFocused
+                          ? "border-blue-500/50 text-blue-300 bg-blue-900/20"
+                          : "border-blue-500/30 text-blue-300 hover:text-blue-300 hover:bg-blue-900/30 hover:border-blue-400 bg-blue-900/10"
+                      )}
+                    >
+                      <Keyboard className="w-3 h-3 mr-2" />
+                      Keyboard
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Main content area */}
+              <div className="flex-1 p-4 sm:p-6 overflow-auto min-w-0 min-h-0 w-full">
             <div className="space-y-4 mb-6">
               <div className="space-y-2">
                 <div>
@@ -700,13 +723,6 @@ export function ColorKeyDemo({
                     onFocus={() => setIsInputFocused(true)}
                     onBlur={() => setIsInputFocused(false)}
                     className="bg-gray-800 border-gray-700 text-white font-mono tracking-wider group-disabled:opacity-50"
-                  />
-                  {isInputFocused && (
-                    <PasswordStrengthMeter password={masterPassword} />
-                  )}
-                  <PasswordEntropyDetails
-                    password={masterPassword}
-                    isVisible={isInputFocused}
                   />
                 </div>
               </div>
@@ -752,133 +768,90 @@ export function ColorKeyDemo({
               </AnimatePresence>
             </div>
 
-            {/* Grid Focus Button and Indicator */}
-            {isActive && !isComplete && !isReplaying && (
-              <div className="flex flex-col items-center gap-3 mb-4">
-                {!isGridFocused && (
-                  <Button
-                    onClick={() => {
-                      setIsGridFocused(true);
-                      // Focus the grid container
-                      const gridElement = document.querySelector('[data-grid-container]') as HTMLElement;
-                      gridElement?.focus();
-                    }}
-                    variant="outline"
-                    className="border-blue-500/50 text-blue-300 hover:text-blue-300 hover:bg-blue-900/30 hover:border-blue-400 bg-blue-900/10 transition-all"
-                  >
-                    <Keyboard className="w-4 h-4 mr-2" />
-                    Activate Keyboard Control
-                  </Button>
-                )}
-                <div
-                  className={cn(
-                    "text-xs px-3 py-1 rounded-full border transition-all duration-300",
-                    isGridFocused
-                      ? "border-blue-500/50 bg-blue-900/20 text-blue-300"
-                      : "border-gray-600/50 bg-gray-800/20 text-gray-400"
-                  )}
-                >
-                  {isGridFocused
-                    ? `Keyboard Active - Use Arrow Keys${
-                        numQuadrants > 4 ? " or Letter Keys" : ""
-                      }`
-                    : "Keyboard Control Inactive"}
-                </div>
-              </div>
-            )}
 
-            {/* Submit Instruction */}
-            {isActive &&
-              !isComplete &&
-              !isReplaying &&
-              loginPassword.length > 0 && (
-                <div className="flex justify-center mb-6">
-                  <div className="text-center">
-                    <div className="inline-flex items-center px-4 py-2 bg-purple-900/20 border border-purple-500/30 rounded-lg">
-                      <div className="flex items-center text-purple-300">
-                        <div className="w-2 h-2 bg-purple-400 rounded-full mr-3 animate-pulse"></div>
-                        <span className="text-sm font-medium">
-                          Click <strong>Submit</strong> when ready to verify
-                          your password
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={isReplaying ? `replay-${replayStep}` : currentStep}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-              >
+            {/* Main Grid Container with overflow protection */}
+            <div className="flex justify-center overflow-auto">
+              <AnimatePresence mode="wait">
                 <motion.div
-                  animate={isComplete ? { scale: [1, 1.02, 1] } : {}}
-                  transition={{ duration: 0.5 }}
+                  key={isReplaying ? `replay-${replayStep}-${numQuadrants}-${charsPerQuadrant}` : `step-${currentStep}-${numQuadrants}-${charsPerQuadrant}`}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="w-fit"
                 >
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <motion.div
-                          data-grid-container
-                          className={cn(
-                            "grid w-full max-w-xl mx-auto gap-4 p-8 rounded-lg border-2 transition-all duration-300 cursor-pointer relative",
-                            !mouseEnabled && "cursor-not-allowed",
-                            isGridFocused &&
+                  <motion.div
+                    animate={isComplete ? { scale: [1, 1.02, 1] } : {}}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <motion.div
+                            key={`grid-${numQuadrants}-${charsPerQuadrant}`}
+                            data-grid-container
+                            className={cn(
+                              "grid w-fit rounded-lg border-2 transition-all duration-300 cursor-pointer relative mx-auto",
+                              charsPerQuadrant <= 4 ? "gap-6 sm:gap-8 p-8 sm:p-10" :
+                              charsPerQuadrant <= 6 ? "gap-4 sm:gap-6 p-6 sm:p-8" :
+                              charsPerQuadrant <= 9 ? "gap-3 sm:gap-4 p-4 sm:p-6" :
+                              charsPerQuadrant <= 12 ? "gap-2 sm:gap-3 p-3 sm:p-4" :
+                              "gap-2 p-2 sm:p-3",
+                              !mouseEnabled && !isMobile && "cursor-not-allowed",
+                              isGridFocused &&
+                                isActive &&
+                                !isComplete &&
+                                !isReplaying
+                                ? "border-blue-500/50 bg-blue-900/10 shadow-lg shadow-blue-500/20 ring-2 ring-blue-400/50"
+                                : "border-cyan-400/40 bg-cyan-900/5 shadow-lg shadow-cyan-400/30 hover:border-cyan-400/60 hover:shadow-xl hover:shadow-cyan-400/40"
+                            )}
+                            animate={
+                              !isGridFocused &&
                               isActive &&
                               !isComplete &&
                               !isReplaying
-                              ? "border-blue-500/50 bg-blue-900/10 shadow-lg shadow-blue-500/20 ring-2 ring-blue-400/50"
-                              : "border-cyan-400/40 bg-cyan-900/5 shadow-lg shadow-cyan-400/30 hover:border-cyan-400/60 hover:shadow-xl hover:shadow-cyan-400/40"
-                          )}
-                          animate={
-                            !isGridFocused &&
-                            isActive &&
-                            !isComplete &&
-                            !isReplaying
-                              ? {
-                                  boxShadow: [
-                                    "0 4px 6px -1px rgba(34, 211, 238, 0.3), 0 2px 4px -1px rgba(34, 211, 238, 0.2), 0 0 20px rgba(34, 211, 238, 0.1)",
-                                    "0 10px 15px -3px rgba(34, 211, 238, 0.4), 0 4px 6px -2px rgba(34, 211, 238, 0.3), 0 0 30px rgba(34, 211, 238, 0.2)",
-                                    "0 4px 6px -1px rgba(34, 211, 238, 0.3), 0 2px 4px -1px rgba(34, 211, 238, 0.2), 0 0 20px rgba(34, 211, 238, 0.1)",
-                                  ],
-                                  borderColor: [
-                                    "rgba(34, 211, 238, 0.4)",
-                                    "rgba(34, 211, 238, 0.7)",
-                                    "rgba(34, 211, 238, 0.4)",
-                                  ],
-                                }
-                              : {}
-                          }
-                          transition={{
-                            duration: 2,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                          }}
-                          onClick={() =>
-                            !isInputFocused && setIsGridFocused(true)
-                          }
-                          onBlur={() => setIsGridFocused(false)}
-                          tabIndex={0}
-                          style={{
-                            gridTemplateColumns:
-                              numQuadrants === 4
-                                ? "repeat(2, 1fr)"
-                                : numQuadrants <= 6
-                                ? "repeat(3, 1fr)"
-                                : numQuadrants <= 9
-                                ? "repeat(3, 1fr)"
-                                : "repeat(auto-fit, minmax(120px, 1fr))",
-                          }}
-                        >
+                                ? {
+                                    boxShadow: [
+                                      "0 4px 6px -1px rgba(34, 211, 238, 0.3), 0 2px 4px -1px rgba(34, 211, 238, 0.2), 0 0 20px rgba(34, 211, 238, 0.1)",
+                                      "0 10px 15px -3px rgba(34, 211, 238, 0.4), 0 4px 6px -2px rgba(34, 211, 238, 0.3), 0 0 30px rgba(34, 211, 238, 0.2)",
+                                      "0 4px 6px -1px rgba(34, 211, 238, 0.3), 0 2px 4px -1px rgba(34, 211, 238, 0.2), 0 0 20px rgba(34, 211, 238, 0.1)",
+                                    ],
+                                    borderColor: [
+                                      "rgba(34, 211, 238, 0.4)",
+                                      "rgba(34, 211, 238, 0.7)",
+                                      "rgba(34, 211, 238, 0.4)",
+                                    ],
+                                  }
+                                : {}
+                            }
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                            }}
+                            onClick={() =>
+                              !isInputFocused && setIsGridFocused(true)
+                            }
+                            onBlur={() => setIsGridFocused(false)}
+                            tabIndex={0}
+                            style={{
+                              gridTemplateColumns:
+                                numQuadrants === 4
+                                  ? 'repeat(2, 1fr)'
+                                  : numQuadrants <= 6
+                                  ? 'repeat(3, 1fr)'
+                                  : numQuadrants <= 9
+                                  ? 'repeat(3, 1fr)'
+                                  : 'repeat(4, 1fr)',
+                              touchAction: 'manipulation',
+                              width: 'fit-content'
+                            }}
+                          >
                           {hyperplane
                             .slice(0, numQuadrants)
                             .map((quadrant, quadrantIndex) => (
                               <motion.button
-                                key={quadrantIndex}
+                                key={`quadrant-${quadrantIndex}-${numQuadrants}-${charsPerQuadrant}`}
                                 onClick={() =>
                                   handleQuadrantSelection(quadrantIndex)
                                 }
@@ -891,8 +864,15 @@ export function ColorKeyDemo({
                                 }}
                                 transition={{ duration: 0.3 }}
                                 className={cn(
-                                  "aspect-square rounded-lg p-2 transition-all duration-200 relative",
+                                  "aspect-square rounded-lg transition-all duration-200 relative overflow-hidden",
+                                  getQuadrantPadding,
                                   "focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950",
+                                  // Dynamic sizes - increase or maintain size as character count increases
+                                  charsPerQuadrant <= 4 ? "min-h-[100px] min-w-[100px]" :
+                                  charsPerQuadrant <= 6 ? "min-h-[120px] min-w-[120px]" :
+                                  charsPerQuadrant <= 9 ? "min-h-[140px] min-w-[140px]" :
+                                  charsPerQuadrant <= 12 ? "min-h-[160px] min-w-[160px]" :
+                                  "min-h-[180px] min-w-[180px]",
                                   !isActive &&
                                     "bg-gray-800/20 border-gray-700/50 cursor-not-allowed",
                                   isActive &&
@@ -912,27 +892,40 @@ export function ColorKeyDemo({
                                     "border-blue-400 ring-2 ring-blue-400",
                                   flashErrorOnHyperplanes &&
                                     "animate-pulse border-red-500 shadow-lg shadow-red-500/50",
-                                  !mouseEnabled && "pointer-events-none"
+                                  !mouseEnabled && !isMobile && "pointer-events-none"
                                 )}
+                                style={{
+                                  touchAction: 'manipulation'
+                                }}
                                 aria-label={`Select quadrant ${
                                   quadrantIndex + 1
                                 }`}
                                 disabled={!isActive || isComplete}
                               >
                                 <div
-                                  className="grid gap-1 w-full h-full"
+                                  className={cn(
+                                    "grid w-full h-full",
+                                    charsPerQuadrant <= 4 ? "gap-2 p-1" :
+                                    charsPerQuadrant <= 6 ? "gap-1.5 p-0.5" :
+                                    charsPerQuadrant <= 9 ? "gap-1 p-0.5" :
+                                    charsPerQuadrant <= 12 ? "gap-0.5 p-0.5" :
+                                    "gap-0.5 p-0"
+                                  )}
                                   style={{
                                     gridTemplateColumns: characterGridCols,
                                   }}
                                 >
-                                  {quadrant.map((char, charIndex) => (
+                                  {(() => {
+                                    console.log(`Rendering quadrant ${quadrantIndex} with ${quadrant.length} characters:`, quadrant);
+                                    return quadrant.map((char, charIndex) => (
                                     <div
-                                      key={charIndex}
-                                      className="aspect-square flex items-center justify-center rounded-sm bg-black/10 border border-white/5 min-h-[24px] min-w-[24px]"
+                                      key={`char-${charIndex}-${charsPerQuadrant}`}
+                                      className="aspect-square flex items-center justify-center rounded-sm bg-black/10 border border-white/5 overflow-hidden min-h-[20px] min-w-[20px]"
                                     >
                                       <span
                                         className={cn(
-                                          "font-mono text-xs sm:text-sm pointer-events-none",
+                                          "font-mono pointer-events-none leading-none",
+                                          getCharacterCellSize,
                                           isActive
                                             ? "text-gray-400"
                                             : "text-gray-600"
@@ -942,7 +935,8 @@ export function ColorKeyDemo({
                                         {char}
                                       </span>
                                     </div>
-                                  ))}
+                                  ));
+                                  })()}
                                 </div>
                                 {/* Hyperplane Number Indicator */}
                                 <div className="absolute bottom-1 right-1 bg-gray-800/80 text-gray-300 text-xs rounded px-1 py-0.5 pointer-events-none">
@@ -952,14 +946,19 @@ export function ColorKeyDemo({
                             ))}
                         </motion.div>
                       </TooltipTrigger>
-                      {!mouseEnabled && !isGridFocused && (
+                      {!isMobile && !mouseEnabled && !isGridFocused && (
                         <TooltipContent>
-                          <p>Click "Activate Keyboard Control" button to use arrow keys</p>
+                          <p>Click "Keyboard" button to use arrow keys</p>
                         </TooltipContent>
                       )}
-                      {!mouseEnabled && isGridFocused && (
+                      {!isMobile && !mouseEnabled && isGridFocused && (
                         <TooltipContent>
                           <p>Use arrow keys to select quadrants</p>
+                        </TooltipContent>
+                      )}
+                      {isMobile && (
+                        <TooltipContent>
+                          <p>Tap quadrants to select</p>
                         </TooltipContent>
                       )}
                     </Tooltip>
@@ -967,6 +966,21 @@ export function ColorKeyDemo({
                 </motion.div>
               </motion.div>
             </AnimatePresence>
+            </div>
+
+            {/* Submit Button - Below the grid for better visibility */}
+            {isActive && loginPassword.length > 0 && (
+              <div className="flex justify-center mt-6">
+                <Button
+                  variant="outline"
+                  onClick={handleSubmit}
+                  disabled={!isActive}
+                  className="min-w-[200px] border-purple-500 text-purple-400 hover:bg-purple-900/20 hover:text-purple-300 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2" /> Submit Password
+                </Button>
+              </div>
+            )}
 
             {/* Error Feedback Message */}
             <AnimatePresence>
@@ -997,10 +1011,12 @@ export function ColorKeyDemo({
                 </motion.div>
               )}
             </AnimatePresence>
+              </div>
+            </div>
           </div>
 
           {!hideDemo && (
-            <div className="lg:col-span-2 bg-gray-900 p-4 sm:p-6 overflow-y-auto">
+            <div className="w-full lg:w-80 lg:flex-shrink-0 bg-gray-900 p-4 sm:p-6 overflow-y-auto">
               <div className="space-y-4">
                 <SettingsToggle
                   id="show-controls"
@@ -1020,7 +1036,14 @@ export function ColorKeyDemo({
                       <SettingsSlider
                         label="Number of Hyperplanes"
                         value={numQuadrants}
-                        onValueChange={(v) => setNumQuadrants(v[0])}
+                        onValueChange={(v) => {
+                          setNumQuadrants(v[0]);
+                          // Clear existing hyperplane and force regeneration
+                          setHyperplane([]);
+                          if (isActive && isMounted) {
+                            setTimeout(() => generateNextHyperplane(currentStep), 0);
+                          }
+                        }}
                         min={4}
                         max={10}
                         step={1}
@@ -1028,9 +1051,14 @@ export function ColorKeyDemo({
                       <SettingsSlider
                         label="Characters per Hyperplane"
                         value={charsPerQuadrant}
-                        onValueChange={(v) =>
-                          setCharsPerQuadrant(Math.min(v[0], 12))
-                        }
+                        onValueChange={(v) => {
+                          setCharsPerQuadrant(Math.min(v[0], 12));
+                          // Clear existing hyperplane and force regeneration
+                          setHyperplane([]);
+                          if (isActive && isMounted) {
+                            setTimeout(() => generateNextHyperplane(currentStep), 0);
+                          }
+                        }}
                         min={4}
                         max={12}
                         step={1}
@@ -1129,29 +1157,32 @@ export function ColorKeyDemo({
                               <div className="pt-3 space-y-3 text-xs text-gray-400">
                                 <div className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/50">
                                   <h4 className="text-cyan-400 font-semibold mb-2">
-                                    Mathematical Advantage
+                                    Security Comparison
                                   </h4>
                                   <div className="space-y-2">
                                     <div>
                                       <span className="text-gray-300">
-                                        Traditional 12-char password:
+                                        Traditional password guessing:
                                       </span>
                                       <div className="font-mono text-gray-500">
-                                        5.4 × 10²³ combinations
+                                        {(62 ** 12).toExponential(1)} attempts needed
                                       </div>
                                     </div>
                                     <div>
                                       <span className="text-cyan-300">
-                                        ColorKey 12-char password:
+                                        ColorKey attack difficulty:
                                       </span>
                                       <div className="font-mono text-cyan-400">
-                                        9.1 × 10³⁰ combinations
+                                        {((numQuadrants ** 12) * (charsPerQuadrant ** 12)).toExponential(1)} attempts needed
                                       </div>
                                     </div>
                                     <div className="pt-2 border-t border-gray-700">
-                                      <span className="text-purple-300 font-medium">
-                                        🔒 16.8 MILLION times more secure
+                                      <span className="text-green-400 font-medium">
+                                        🔒 {(((numQuadrants ** 12) * (charsPerQuadrant ** 12)) / (62 ** 12)).toExponential(1)}x harder to crack
                                       </span>
+                                      <div className="text-xs text-gray-400 mt-1">
+                                        Requires both password knowledge AND visual layout memory
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -1160,16 +1191,13 @@ export function ColorKeyDemo({
                                   <div className="flex items-start gap-2">
                                     <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
                                     <span>
-                                      Each character requires selecting the
-                                      correct hyperplane (1 in {numQuadrants}{" "}
-                                      chance)
+                                      Attacker needs both password AND correct quadrant positions (1 in {numQuadrants} chance per character)
                                     </span>
                                   </div>
                                   <div className="flex items-start gap-2">
                                     <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-1.5 flex-shrink-0"></div>
                                     <span>
-                                      Layouts randomize after each selection -
-                                      impossible to replay attacks
+                                      Layouts randomize dynamically - replay attacks impossible
                                     </span>
                                   </div>
                                   <div className="flex items-start gap-2">
@@ -1199,52 +1227,31 @@ export function ColorKeyDemo({
             </div>
           )}
         </div>
-        <CardFooter className="flex flex-wrap justify-center gap-4 bg-gray-900/50 border-t border-gray-800 p-4 sm:p-6">
-          <Button
-            variant="outline"
-            onClick={handleBacktrack}
-            disabled={currentStep === 0}
-            className="flex-1 sm:flex-auto min-w-[140px] border-yellow-500 text-yellow-400 hover:bg-yellow-900/20 hover:text-yellow-300 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Backtrack
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleSubmit}
-            disabled={!isActive}
-            className="flex-1 sm:flex-auto min-w-[140px] border-purple-500 text-purple-400 hover:bg-purple-900/20 hover:text-purple-300 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <CheckCircle2 className="w-4 h-4 mr-2" /> Submit
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleFullRestart}
-            disabled={!isActive}
-            className="flex-1 sm:flex-auto min-w-[140px] border-red-500 text-red-400 hover:bg-red-900/20 hover:text-red-300 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <RotateCcw className="w-4 h-4 mr-2" /> Restart
-          </Button>
-          {isReplaying ? (
-            <Button
-              variant="outline"
-              onClick={handleStopReplay}
-              className="flex-1 sm:flex-auto min-w-[140px] border-cyan-500 text-cyan-400 hover:bg-cyan-900/20 hover:text-cyan-300 bg-transparent"
-            >
-              <StopCircle className="w-4 h-4 mr-2" /> Stop Replay
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              onClick={handleReplay}
-              disabled={history.length === 0}
-              className="flex-1 sm:flex-auto min-w-[140px] border-cyan-500 text-cyan-400 hover:bg-cyan-900/20 hover:text-cyan-300 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <History className="w-4 h-4 mr-2" /> Replay History
-            </Button>
-          )}
-        </CardFooter>
+        {history.length > 0 && (
+          <CardFooter className="flex justify-center bg-gray-900/50 border-t border-gray-800 p-4 sm:p-6">
+            {isReplaying ? (
+              <Button
+                variant="outline"
+                onClick={handleStopReplay}
+                className="min-w-[140px] border-cyan-500 text-cyan-400 hover:bg-cyan-900/20 hover:text-cyan-300 bg-transparent"
+              >
+                <StopCircle className="w-4 h-4 mr-2" /> Stop Replay
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={handleReplay}
+                disabled={history.length === 0}
+                className="min-w-[140px] border-cyan-500 text-cyan-400 hover:bg-cyan-900/20 hover:text-cyan-300 bg-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <History className="w-4 h-4 mr-2" /> Replay History
+              </Button>
+            )}
+          </CardFooter>
+        )}
       </fieldset>
     </Card>
+    </div>
   );
 }
 
